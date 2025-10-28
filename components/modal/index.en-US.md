@@ -37,6 +37,7 @@ When requiring users to interact with the application, but without jumping to a 
 | okText | Text of the OK button | ReactNode | `OK` |  |
 | okType | Button `type` of the OK button | string | `primary` |  |
 | style | Style of floating layer, typically used at least for adjusting the position | CSSProperties | - |  |
+| swipeToClose | Whether to support swipe down gesture to close | boolean | false |  |
 | title | The modal dialog's title | ReactNode | - |  |
 | visible | Whether the modal dialog is visible or not | boolean | false |  |
 | width | Width of the modal dialog | string \| number | 520 |  |
