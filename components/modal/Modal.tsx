@@ -137,9 +137,11 @@ interface ModalInterface extends React.FC<ModalProps> {
 }
 
 const Modal: ModalInterface = props => {
-  const { getPopupContainer: getContextPopupContainer, getPrefixCls, direction } = React.useContext(
-    ConfigContext,
-  );
+  const {
+    getPopupContainer: getContextPopupContainer,
+    getPrefixCls,
+    direction,
+  } = React.useContext(ConfigContext);
 
   // State for tracking touch gestures
   const [touchStart, setTouchStart] = React.useState<{ x: number; y: number } | null>(null);
