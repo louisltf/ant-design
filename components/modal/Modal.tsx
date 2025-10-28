@@ -81,6 +81,8 @@ export interface ModalProps {
   closeIcon?: React.ReactNode;
   modalRender?: (node: React.ReactNode) => React.ReactNode;
   focusTriggerAfterClose?: boolean;
+  /** 是否支持向下滑动手势关闭 */
+  swipeToClose?: boolean;
 }
 
 type getContainerFunc = () => HTMLElement;
@@ -121,6 +123,7 @@ export interface ModalFuncProps {
   closeIcon?: React.ReactNode;
   modalRender?: (node: React.ReactNode) => React.ReactNode;
   focusTriggerAfterClose?: boolean;
+  swipeToClose?: boolean;
 }
 
 export interface ModalLocale {
@@ -134,9 +137,18 @@ interface ModalInterface extends React.FC<ModalProps> {
 }
 
 const Modal: ModalInterface = props => {
-  const { getPopupContainer: getContextPopupContainer, getPrefixCls, direction } = React.useContext(
-    ConfigContext,
-  );
+  const {
+    getPopupContainer: getContextPopupContainer,
+    getPrefixCls,
+    direction,
+  } = React.useContext(ConfigContext);
+
+  // State for tracking touch gestures
+  const [touchStart, setTouchStart] = React.useState<{ x: number; y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = React.useState<{ x: number; y: number } | null>(null);
+
+  // Minimum swipe distance (in pixels) to trigger close
+  const minSwipeDistance = 50;
 
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
     const { onCancel } = props;
@@ -149,6 +161,48 @@ const Modal: ModalInterface = props => {
     const { onOk } = props;
     if (onOk) {
       onOk(e);
+    }
+  };
+
+  // Touch event handlers for swipe gesture
+  const onTouchStart = (e: React.TouchEvent) => {
+    const { swipeToClose } = props;
+    if (!swipeToClose) return;
+
+    setTouchEnd(null);
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    const { swipeToClose } = props;
+    if (!swipeToClose) return;
+
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    });
+  };
+
+  const onTouchEnd = () => {
+    const { swipeToClose } = props;
+    if (!swipeToClose || !touchStart || !touchEnd) return;
+
+    const distanceY = touchEnd.y - touchStart.y;
+    const distanceX = touchEnd.x - touchStart.x;
+    const isDownSwipe = distanceY > minSwipeDistance;
+    // Ensure it's primarily a vertical swipe (not horizontal)
+    const isVerticalSwipe = Math.abs(distanceY) > Math.abs(distanceX);
+
+    if (isDownSwipe && isVerticalSwipe) {
+      // Create a synthetic event for handleCancel
+      const syntheticEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+      } as React.MouseEvent<HTMLButtonElement>;
+      handleCancel(syntheticEvent);
     }
   };
 
@@ -180,6 +234,7 @@ const Modal: ModalInterface = props => {
     getContainer,
     closeIcon,
     focusTriggerAfterClose = true,
+    swipeToClose,
     ...restProps
   } = props;
 
@@ -200,6 +255,17 @@ const Modal: ModalInterface = props => {
     [`${prefixCls}-centered`]: !!centered,
     [`${prefixCls}-wrap-rtl`]: direction === 'rtl',
   });
+
+  // Add touch event handlers if swipeToClose is enabled
+  const wrapPropsExtended = swipeToClose
+    ? {
+        ...props.wrapProps,
+        onTouchStart,
+        onTouchMove,
+        onTouchEnd,
+      }
+    : props.wrapProps;
+
   return (
     <Dialog
       {...restProps}
@@ -212,6 +278,7 @@ const Modal: ModalInterface = props => {
       onClose={handleCancel}
       closeIcon={closeIconToRender}
       focusTriggerAfterClose={focusTriggerAfterClose}
+      wrapProps={wrapPropsExtended}
     />
   );
 };
@@ -225,6 +292,7 @@ Modal.defaultProps = {
   confirmLoading: false,
   visible: false,
   okType: 'primary' as LegacyButtonType,
+  swipeToClose: false,
 };
 
 export default Modal;

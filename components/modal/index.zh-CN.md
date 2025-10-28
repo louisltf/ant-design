@@ -40,6 +40,7 @@ cover: https://gw.alipayobjects.com/zos/alicdn/3StSdUlSH/Modal.svg
 | okText | 确认按钮文字 | ReactNode | `确定` |  |
 | okType | 确认按钮类型 | string | `primary` |  |
 | style | 可用于设置浮层的样式，调整浮层位置等 | CSSProperties | - |  |
+| swipeToClose | 是否支持向下滑动手势关闭 | boolean | false |  |
 | title | 标题 | ReactNode | - |  |
 | visible | 对话框是否可见 | boolean | - |  |
 | width | 宽度 | string \| number | 520 |  |
